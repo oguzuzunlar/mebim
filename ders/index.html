@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -32,8 +32,8 @@
             body > *:not(.orientation-warning) { display: none !important; }
         }
         @media (orientation: landscape) and (max-width: 900px) {
-            .bg-slate-900 { height: 50px !important; padding: 0 2vw !important; }
-            .iframe-container { height: calc(100vh - 50px) !important; }
+            .bg-slate-900 { min-h-[50px] !important; height: auto !important; padding: 4px 2vw !important; }
+            .iframe-container { flex: 1 !important; height: 0 !important; }
             h1 { font-size: 14px !important; }
             button { padding: 6px 10px !important; font-size: 11px !important; }
             .hidden { display: none !important; }
@@ -44,7 +44,8 @@
             overflow: hidden; /* Portal dışı taşmaları engeller */
         }
         .iframe-container {
-            height: calc(100vh - 70px); /* Kontrol barı için pay bırakır */
+            flex: 1;
+            height: 0; /* Prevents overflow computation bugs in some browsers */
         }
         iframe {
             width: 100%;
@@ -61,11 +62,11 @@
         <p>Bu içerik yatay (landscape) modda görüntülenmek üzere tasarlanmıştır.</p>
     </div>
 
-    <div class="bg-slate-900 text-white h-[70px] px-6 flex items-center justify-between shadow-md z-50">
+    <div class="bg-slate-900 text-white min-h-[70px] py-2 px-6 flex items-center justify-between shadow-md z-50">
         <div class="flex items-center gap-4">
             <span class="text-2xl" id="portalIcon">🚀</span>
             <div>
-                <h1 class="font-bold text-lg leading-tight" id="portalTitle">Canlı Ders Portalı</h1>
+                <h1 class="font-bold text-base sm:text-lg leading-normal" id="portalTitle">Canlı Ders Portalı</h1>
                 <p class="text-xs text-slate-400">Modül <span id="currentNum">1</span> / <span id="totalNum">9</span></p>
             </div>
         </div>
