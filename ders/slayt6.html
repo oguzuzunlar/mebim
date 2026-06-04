@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ramsey Teorisi: Geri Al ve Sıfırla Destekli İspat</title>
     <script>
         window.MathJax = {
@@ -14,6 +14,36 @@
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
+        .orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #1e3a8a;
+            color: white;
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .orientation-warning h2 { font-size: 24px; margin-bottom: 15px; }
+        .orientation-warning p { font-size: 18px; }
+        .rotate-icon { font-size: 60px; margin: 20px 0; animation: rotate 2s infinite; }
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+        @media (orientation: portrait) {
+            .orientation-warning { display: flex !important; }
+            body > *:not(.orientation-warning) { display: none !important; }
+        }
+        @media (orientation: landscape) and (max-width: 900px) {
+            body { padding: 1vh 2vw; }
+            h1 { font-size: clamp(18px, 3.5vw, 28px) !important; }
+            .card, .step { padding: 1.5vh 2vw !important; font-size: 14px !important; }
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -280,6 +310,11 @@
     </style>
 </head>
 <body>
+    <div class="orientation-warning">
+        <h2>📱 Lütfen Cihazınızı Yatay Konuma Getirin</h2>
+        <div class="rotate-icon">🔄</div>
+        <p>Bu içerik yatay (landscape) modda görüntülenmek üzere tasarlanmıştır.</p>
+    </div>
 
     <h1>Ramsey Teoremi: R(3,3)=6 Matematiksel İspat Adımları</h1>
 
