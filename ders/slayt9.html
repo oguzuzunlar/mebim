@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ramsey R(3,3,3) Problemi</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 2vh 2vw;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .slide-card {
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 4vh 4vw;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            min-height: calc(100vh - 40px);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2vh;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 1.5vh;
+            flex-shrink: 0;
+        }
+        .icon-box {
+            font-size: 48px;
+            margin-right: 20px;
+            line-height: 1;
+        }
+        h1 {
+            font-size: 32px;
+            color: #1e3a8a;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .problem-box {
+            background-color: #f0fdf4;
+            border-left: 6px solid #16a34a;
+            padding: 3vh 3vw;
+            border-radius: 4px 16px 16px 4px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-bottom: 2vh;
+        }
+        .badge {
+            background-color: #16a34a;
+            color: #ffffff;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 1.5vh;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            align-self: flex-start;
+        }
+        .context-text {
+            font-size: 24px;
+            line-height: 1.5;
+            color: #334155;
+            margin-bottom: 2vh;
+            font-style: italic;
+        }
+        .question-highlight {
+            font-size: 26px;
+            line-height: 1.5;
+            color: #0f172a;
+            font-weight: 700;
+            background: linear-gradient(to right, rgba(220, 252, 231, 0.7), transparent);
+            padding: 2vh 2.5vw;
+            border-radius: 8px;
+            border-left: 5px solid #15803d;
+        }
+        .footer-metrics {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1vh;
+            padding-top: 1.5vh;
+            border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .metric-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            color: #475569;
+            font-weight: 600;
+        }
+        .metric-item strong {
+            color: #15803d;
+        }
+        .metric-icon {
+            font-size: 26px;
+        }
+
+        @media (max-height: 760px), (max-width: 900px) {
+            body { padding: 10px; height: auto; overflow-y: auto; }
+            .slide-card { height: auto; padding: 20px; min-height: 0; }
+            h1 { font-size: 24px; }
+            .context-text { font-size: 18px; }
+            .question-highlight { font-size: 20px; }
+            .metric-item { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-card">
+        <div class="header">
+            <div class="icon-box">🎭</div>
+            <h1>Bilişsel Sıçrama: R(3,3,3)</h1>
+        </div>
+
+        <div class="problem-box">
+            <div class="badge">Sınırları Zorlayan Problem</div>
+            <p class="context-text">
+                "Bir partideki herhangi iki kişi arasında üç olası ilişkiden biri mevcuttur: Birbirlerini <strong>seviyorlardır</strong>, birbirlerinden <strong>nefret ediyorlardır</strong> veya birbirlerine <strong>tamamen ilgisizlerdir</strong>."
+            </p>
+            <div class="question-highlight">
+                Bu partide en az 3 kişinin birbirini sevmesini, veya 3 kişinin birbirinden nefret etmesini, veya 3 kişinin birbirine ilgisiz olmasını garantilemek için katılması gereken minimum kişi sayısı kaçtır?
+            </div>
+        </div>
+
+        <div class="footer-metrics">
+            <div class="metric-item">
+                <span class="metric-icon">🎨</span>
+                Paralel Renk Sayısı: <strong>3</strong>
+            </div>
+            <div class="metric-item">
+                <span class="metric-icon">🎲</span>
+                Olasılık: <strong>$R(3,3,3)=?$</strong>
+            </div>
+            <div class="metric-item">
+                <span class="metric-icon">🧩</span>
+                Zorluk: <strong>Efsanevi</strong>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
