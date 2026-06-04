@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğretmen Paneli: Güvercin Yuvası İlkesi</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* height: 100vh yerine min-height kullanarak içeriğin uzamasına izin veriyoruz */
+            padding: 2vh 2vw;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto; /* Kilit yerine esnek dikey kaydırma */
+        }
+        .slide-card, .container, .main-slide {
+            /* Mevcut diğer kurallarınız kalacak, sadece yükseklik kuralını esnetiyoruz: */
+            height: auto; 
+            min-height: calc(100vh - 40px); /* Üst/alt padding değerlerine göre ekrana yayılma emniyeti */
+        }
+        .container {
+            width: 100%;
+            background: var(--card-bg);
+            padding: 3vh 3vw;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Flexbox dikey taşma emniyeti */
+        }
+
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5vh;
+            flex-shrink: 0;
+            gap: 15px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        .btn-info {
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-info:hover {
+            background-color: #0369a1;
+        }
+
+        .problem-statement {
+            background-color: #f0fdf4;
+            border: 2px dashed #22c55e;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 1.5vh;
+            font-size: 1.05rem;
+            color: #14532d;
+            text-align: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* ANA İÇERİK DİZİLİMİ (Sol: Simülasyon, Sağ: Sorular) */
+        .main-layout-split {
+            display: flex;
+            gap: 2vw;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+
+        .left-sim-panel {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5vh;
+            min-height: 0;
+        }
+
+        .slider-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: #f1f5f9;
+            padding: 12px 20px;
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .slider-label span {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .pool-container {
+            background: #fffbeb;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+
+        .pool-title {
+            font-weight: bold;
+            color: #b45309;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .pigeon-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            min-height: 40px;
+        }
+
+        .pigeon {
+            width: 36px;
+            height: 36px;
+            background-color: #ffedd5;
+            border: 2px solid #f97316;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .simulation-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            background: #fafafa;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px dashed #e2e8f0;
+        }
+
+        .pigeonhole {
+            background: #fff;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            min-height: 110px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .pigeonhole:hover {
+            border-color: var(--primary);
+            background-color: #f5f3ff;
+        }
+
+        .pigeonhole.highlight-multiple {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 3px #fca5a5;
+        }
+
+        .pigeonhole-title {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .pigeons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .hole-count {
+            margin-top: auto;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .pigeonhole.highlight-multiple .hole-count {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .reset-btn-container {
+            display: flex;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn-reset {
+            background-color: #64748b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-reset:hover {
+            background-color: #475569;
+        }
+
+        /* SAĞ PANEL: SORULAR (Kendi içinde bağımsız dikey kaydırma) */
+        .right-exercises-panel {
+            flex: 0.9;
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 0;
+        }
+
+        .exercises-title {
+            color: #1e293b;
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .exercises-scroll-area {
+            flex: 1;
+            overflow-y: auto; /* Sorular aşağı doğru bağımsızca kaysın */
+            padding-right: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .exercise-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .exercise-question {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .btn-answer {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-answer:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .exercise-answer {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            border-radius: 0 6px 6px 0;
+            color: #14532d;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            display: none;
+        }
+
+        /* MODAL TASARIMI */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; padding: 20px;
+        }
+
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .modal-content {
+            background-color: white; border-radius: 16px; max-width: 600px; width: 100%;
+            max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2);
+        }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding: 15px 20px; }
+        .modal-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin: 0; }
+        .close-modal { font-size: 1.6rem; background: none; border: none; color: #94a3b8; cursor: pointer; }
+        .modal-body { padding: 20px; overflow-y: auto; }
+        .theory-section { background-color: #f8fafc; border-left: 4px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 15px; }
+        .theory-section.generalized { border-left-color: #0284c7; background-color: #f0f9ff; }
+        .theory-title { font-weight: bold; font-size: 1rem; margin-bottom: 4px; color: #1e293b; }
+        .theory-text { font-size: 0.9rem; line-height: 1.5; color: #334155; margin-bottom: 5px; }
+        .math-block { background: #ffffff; border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-family: monospace; font-weight: bold; margin: 5px 0; color: #0f172a; }
+
+        /* YÜKSEKLİĞİ DAR VEYA MOBİL YATAY EKRANLAR İÇİN ESNEKLİK */
+        @media (max-height: 760px), (max-width: 900px) {
+            body { 
+                padding: 10px; 
+                height: auto; /* Boyutu serbest bırak */
+                overflow-y: auto; /* Kaydırmayı kesin olarak aktif et */
+            }
+            
+            .slide-card, .container, .main-slide { 
+                height: auto; /* Kartın dikeyde uzayabilmesini sağla */
+                padding: 15px; 
+            }
+
+            /* Eğer Slayt 4'teki gibi iç tarafta yüksekliği kilitli bir canvas varsa: */
+            canvas {
+                height: auto !important;
+                max-height: 350px; /* Telefon ekranında devasa olup sayfayı patlatmasın diye */
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            /* Slayt 5 ve 6'daki yan yana (flex) düzenleri mobilde alt alta getirerek sıkışmayı önleriz */
+            .main-layout, .main-layout-split {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .control-panel, .canvas-panel, .left-sim-panel, .right-exercises-panel {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+        /* ESKİ KÜÇÜK EKRAN KURALLARI (Gerekiyorsa buraya ekleyin veya birleştirin) */
+        @media (max-height: 760px) {
+            body { padding: 1vh 2vw; }
+            h1 { font-size: 1.3rem; }
+            .btn-info { padding: 6px 12px; font-size: 0.8rem; }
+            .problem-statement { padding: 6px 12px; font-size: 0.95rem; margin-bottom: 1vh; }
+            .container { padding: 2vh 2vw; }
+            .main-layout-split { gap: 1.5vw; }
+            .slider-section { padding: 8px 15px; gap: 10px; }
+            .slider-label { font-size: 0.8rem; }
+            .pool-container { padding: 6px; }
+            .pigeon-pool { min-height: 32px; gap: 4px; }
+            .pigeon { width: 28px; height: 28px; font-size: 1rem; }
+            .simulation-area { gap: 8px; padding: 6px; }
+            .pigeonhole { min-height: 85px; padding: 5px; }
+            .pigeonhole-title { font-size: 0.75rem; margin-bottom: 4px; }
+            .hole-count { font-size: 0.7rem; padding: 1px 6px; }
+            .right-exercises-panel { padding: 12px; }
+            .exercises-title { font-size: 1rem; margin-bottom: 8px; }
+            .exercise-card { padding: 10px; }
+            .exercise-question { font-size: 0.8rem; margin-bottom: 6px; }
+            .btn-reset { padding: 6px 16px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-area">
+        <h1>🐦 Sınıf İçi Güvercin Yuvası İlkesi Simülasyonu</h1>
+        <button class="btn-info" onclick="toggleModal(true)">📖 İlkelerin Tanımını Göster</button>
+    </div>
+    
+    <div class="problem-statement" id="problemText">
+        Elinizde 5 güvercin ve 4 güvercin yuvası var. Her bir yuvada SADECE BİR güvercin olmasını sağlayabilir misiniz?
+    </div>
+
+    <div class="main-layout-split">
+        <div class="left-sim-panel">
+            <div class="slider-section">
+                <div class="slider-group">
+                    <div class="slider-label">Yuva Sayısı (k): <span id="holeVal">4</span></div>
+                    <input type="range" id="holeSlider" min="1" max="8" value="4" oninput="updateSliders('hole')">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">Güvercin Sayısı (n): <span id="pigeonVal">5</span></div>
+                    <input type="range" id="pigeonSlider" min="2" max="20" value="5" oninput="updateSliders('pigeon')">
+                </div>
+            </div>
+
+            <div class="pool-container">
+                <div class="pool-title">Yuvaya Yerleştirilmeyi Bekleyen Güvercinler (<span id="remCount">5</span> adet)</div>
+                <div class="pigeon-pool" id="pigeonPool"></div>
+            </div>
+
+            <div class="simulation-area" id="simulationArea"></div>
+
+            <div class="reset-btn-container">
+                <button class="btn-reset" onclick="initSimulation()">Mevcut Sayılarla Dağıtımı Sıfırla</button>
+            </div>
+        </div>
+
+        <div class="right-exercises-panel">
+            <div class="exercises-title">📝 Kendimizi Deneyelim: Alıştırma Soruları</div>
+            <div class="exercises-scroll-area">
+                
+                <div class="exercise-card">
+                    <div class="exercise-question">Soru 1: Ankara'da saç teli sayısı tamamen eşit olan en az iki kişi var mıdır?</div>
+                </div>
+
+                <div class="exercise-card">
+                    <div class="exercise-question">Soru 2: Bir çekmecede 6 siyah ve 6 mavi çorap vardır. Karanlıkta çekmeceden en az kaç çorap almalısınız ki kesinlikle aynı renkten bir çift elde etmiş olasınız?</div>
+                    <button class="btn-answer" onclick="toggleAnswer('ans2')">Cevabı Göster / Gizle</button>
+                    <div class="exercise-answer" id="ans2">
+                        En az 3 çorap almalısınız. Burada renkler bizim yuvalarımızdır yani siyah ve mavi olmak üzere 2 yuva vardır. Çekmeceden çekilen çoraplar ise güvercinlerdir. En az bir yuvada 2 çorap olmasını garanti etmek için yuva sayısından 1 fazla yani 3 çorap seçilmesi gerekir.
+                    </div>
+                </div>
+
+                <div class="exercise-card">
+                    <div class="exercise-question">Soru 3: 13 kişinin bulunduğu bir odada, en az iki kişinin aynı ayda doğmuş olduğunu kesin olarak söyleyebilir miyiz?</div>
+                    <button class="btn-answer" onclick="toggleAnswer('ans3')">Cevabı Göster / Gizle</button>
+                    <div class="exercise-answer" id="ans3">
+                        Evet, kesinlikle söyleyebiliriz. Bir yılda 12 ay vardır yani yuva sayımız 12'dir. Odadaki kişi sayısı ise 13'tür. İnsan sayısı ay sayısından fazla olduğu için en az iki kişi aynı ayda doğmuş olmak zorundadır.
+                    </div>
+                </div>
+
+                <div class="exercise-card">
+                    <div class="exercise-question">Soru 4: 50 öğrencisi olan bir sınıfta, haftanın aynı gününde doğmuş en az kaç öğrenci vardır?</div>
+                    <button class="btn-answer" onclick="toggleAnswer('ans4')">Cevabı Göster / Gizle</button>
+                    <div class="exercise-answer" id="ans4">
+                        En az 8 öğrenci vardır. Haftanın günleri yuva sayısıdır yani 7 yuva vardır. Öğrenci sayısı ise 50'dir. Genelleştirilmiş Güvercin Yuvası İlkesi formülüne göre 50 sayısını 7 sayısına bölüp tavan değerini aldığımızda 8 sonucuna ulaşırız. Bu yüzden haftanın aynı gününde doğmuş en az 8 öğrenci bulunur.
+                    </div>
+                </div>
+
+                <div class="exercise-card">
+                    <div class="exercise-question">Soru 5: Bir okul testinde öğrencilere 1 ile 10 arasında tam sayı puanlar verilmektedir. Teste giren 45 öğrenci olduğuna göre, aynı puanı alan en az kaç öğrenci bulunmak zorundadır?</div>
+                    <button class="btn-answer" onclick="toggleAnswer('ans5')">Cevabı Göster / Gizle</button>
+                    <div class="exercise-answer" id="ans5">
+                        En az 5 öğrenci vardır. Alınabilecek puan türleri yuva sayısıdır yani 10 yuva vardır. Öğrenci sayısı ise 45'tir. Genelleştirilmiş kural gereğince 45 sayısını 10 sayısına böldüğümüzde çıkan 4.5 değerini yukarı yuvarlarız ve 5 tavan değerine ulaşırız. Bu puan tablosunda aynı notu paylaşan en az 5 öğrenci bulunur.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="theoryModal" onclick="toggleModal(false)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">Matematiksel Teori ve Tanımlar</h2>
+            <button class="close-modal" onclick="toggleModal(false)">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="theory-section">
+                <div class="theory-title">1. Güvercin Yuvası İlkesi</div>
+                <p class="theory-text">Matematiksel koşul ve kural şu şekildedir:</p>
+                <div class="math-block">n > k ise en az bir kutuda ≥ 2 nesne vardır.</div>
+                <p class="theory-text">
+                    Burada n nesne sayısını, k ise kutu sayısını temsil eder. Nesne sayısı kutu sayısından fazla olduğu sürece en az bir kutunun birden fazla nesne barındırması matematiksel bir zorunluluktur.
+                </p>
+            </div>
+
+            <div class="theory-section generalized">
+                <div class="theory-title">2. Genelleştirilmiş Güvercin Yuvası İlkesi</div>
+                <p class="theory-text">Çok sayıda nesne daha az sayıda kutuya yerleştirildiğinde kullanılacak matematiksel formül şu şekildedir:</p>
+                <div class="math-block">En az bir kutudaki nesne sayısı ≥ ⌈n / k⌉</div>
+                <p class="theory-text">
+                    Bu ifadedeki ⌈ ⌉ sembolü bölme sonucunu bir üst tam sayıya tamamlayan tavan değer fonksiyonudur. Dağıtım mimarisi nasıl kurulursa kurulsun en az bir kutuda bu formül sonucu kadar veya daha fazla nesne birikecektir.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let n = 5; 
+    let k = 4; 
+    let poolCount = 5; 
+    let holesData = []; 
+
+    function toggleModal(show) {
+        const modal = document.getElementById('theoryModal');
+        if (show) {
+            modal.classList.add('open');
+            triggerMathJax(modal);
+        } else {
+            modal.classList.remove('open');
+        }
+    }
+
+    function triggerMathJax(element) {
+        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+            window.MathJax.typesetPromise([element]).catch(function (err) {
+                console.error('MathJax Typesetting Error:', err);
+            });
+        }
+    }
+
+    function toggleAnswer(id) {
+        const ans = document.getElementById(id);
+        if (ans.style.display === 'block') {
+            ans.style.display = 'none';
+        } else {
+            ans.style.display = 'block';
+            triggerMathJax(ans);
+        }
+    }
+
+    function updateSliders(triggerSource) {
+        k = parseInt(document.getElementById('holeSlider').value);
+        n = parseInt(document.getElementById('pigeonSlider').value);
+
+        if (n <= k) {
+            if (triggerSource === 'hole') {
+                n = k + 1;
+                document.getElementById('pigeonSlider').value = n;
+            } else if (triggerSource === 'pigeon') {
+                k = n - 1;
+                document.getElementById('holeSlider').value = k;
+            }
+        }
+
+        document.getElementById('holeVal').innerText = k;
+        document.getElementById('pigeonVal').innerText = n;
+        document.getElementById('problemText').innerText = `Elinizde ${n} güvercin ve ${k} güvercin yuvası var. Her bir yuvada SADECE BİR güvercin olmasını sağlayabilir misiniz?`;
+
+        initSimulation();
+    }
+
+    function initSimulation() {
+        poolCount = n;
+        document.getElementById('remCount').innerText = poolCount;
+        holesData = Array(k).fill(0);
+
+        const pool = document.getElementById('pigeonPool');
+        pool.innerHTML = '';
+        for(let i=0; i<poolCount; i++) {
+            const p = document.createElement('div');
+            p.className = 'pigeon';
+            p.innerText = '🐦';
+            pool.appendChild(p);
+        }
+
+        const simArea = document.getElementById('simulationArea');
+        simArea.innerHTML = '';
+
+        for(let j=0; j<k; j++) {
+            const hole = document.createElement('div');
+            hole.className = 'pigeonhole';
+            hole.id = `hole-${j}`;
+            hole.onclick = () => addPigeonToHole(j);
+
+            const title = document.createElement('div');
+            title.className = 'pigeonhole-title';
+            title.innerText = `Yuva ${j + 1}`;
+
+            const container = document.createElement('div');
+            container.className = 'pigeons-container';
+            container.id = `container-${j}`;
+
+            const count = document.createElement('div');
+            count.className = 'hole-count';
+            count.id = `count-${j}`;
+            count.innerText = 'Güvercin: 0';
+
+            hole.appendChild(title);
+            hole.appendChild(container);
+            hole.appendChild(count);
+            simArea.appendChild(hole);
+        }
+    }
+
+    function addPigeonToHole(holeIndex) {
+        if (poolCount <= 0) {
+            alert("Tüm güvercinleri yerleştirdiniz!");
+            return;
+        }
+
+        poolCount--;
+        document.getElementById('remCount').innerText = poolCount;
+        const pool = document.getElementById('pigeonPool');
+        if(pool.lastChild) pool.removeChild(pool.lastChild);
+
+        holesData[holeIndex]++;
+
+        const container = document.getElementById(`container-${holeIndex}`);
+        const pVisual = document.createElement('div');
+        pVisual.className = 'pigeon';
+        pVisual.innerText = '🐦';
+        container.appendChild(pVisual);
+
+        document.getElementById(`count-${holeIndex}`).innerText = `Güvercin: ${holesData[holeIndex]}`;
+
+        checkHoleStatus();
+    }
+
+    function checkHoleStatus() {
+        for(let j=0; j<k; j++) {
+            const holeEl = document.getElementById('hole-' + j);
+            if (holesData[j] >= 2) {
+                holeEl.classList.add('highlight-multiple');
+            } else {
+                holeEl.classList.remove('highlight-multiple');
+            }
+        }
+    }
+
+    window.onload = initSimulation;
+</script>
+
+</body>
+</html>

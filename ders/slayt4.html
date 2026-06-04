@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sosyal Ağ Paradoksu: Keşif Laboratuvarı</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* height: 100vh yerine min-height kullanarak içeriğin uzamasına izin veriyoruz */
+            padding: 2vh 2vw;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto; /* Kilit yerine esnek dikey kaydırma */
+        }
+        .slide-card, .container, .main-slide {
+            /* Mevcut diğer kurallarınız kalacak, sadece yükseklik kuralını esnetiyoruz: */
+            height: auto; 
+            min-height: calc(100vh - 40px); /* Üst/alt padding değerlerine göre ekrana yayılma emniyeti */
+        }
+        /* ANA KONTEYNER */
+        .container { 
+            display: flex; 
+            justify-content: center; 
+            gap: 3vw; 
+            background: white; 
+            padding: 3vh 3vw; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); 
+            width: 100%; 
+            border: 1px solid #e2e8f0; 
+            min-height: 0; /* Flexbox dikey taşma emniyeti */
+        }
+
+        .canvas-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 1.5vh; 
+            align-items: center; 
+            height: 100%;
+            flex: 1;
+            min-height: 0;
+        }
+        canvas { 
+            background-color: #ffffff; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 16px; 
+            touch-action: none; 
+            height: 100% !important; /* Esnek dikey yüksekliğe uyması sağlandı */
+            max-height: calc(100% - 110px); /* Buton ve seçici barların alanını koru */
+            aspect-ratio: 1 / 1; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+
+        /* SEÇİM VE ARAÇ ÇUBUKLARI */
+        .selector-bar { display: flex; gap: 8px; background: #f1f5f9; padding: 6px 12px; border-radius: 12px; border: 1px solid #e2e8f0; width: 100%; max-width: 440px; justify-content: center; flex-shrink: 0; align-items: center; }
+        .selector-title { font-weight: 700; color: #1e3a8a; font-size: 0.9em; }
+        .size-btn { padding: 6px 12px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9em; color: #475569; transition: all 0.2s; }
+        .size-btn.active { background: #1e3a8a; color: white; border-color: #1e3a8a; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .toolbar { display: flex; gap: 10px; background: #f8fafc; padding: 8px 15px; border-radius: 12px; border: 1px solid #e2e8f0; width: 100%; max-width: 440px; justify-content: center; flex-shrink: 0; }
+        .tool-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 3px solid transparent; border-radius: 10px; background: white; cursor: pointer; font-weight: bold; font-size: 0.9em; color: #475569; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s; }
+        .tool-btn:hover { transform: translateY(-1px); }
+        .tool-btn.active { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transform: scale(1.02); }
+        .tool-btn.red.active  { border-color: #be123c; background: #fff1f2; color: #be123c; }
+        .tool-btn.blue.active { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+        .tool-btn.eraser.active { border-color: #64748b; background: #f1f5f9; color: #475569; }
+        .color-dot { width: 14px; height: 14px; border-radius: 50%; }
+
+        .panel { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 2vh; 
+            width: 100%; 
+            max-width: 360px; 
+            height: 100%;
+            justify-content: space-between; /* Sağ taraftaki rapor/hesap araçlarını dikeyde yay */
+            min-height: 0;
+        }
+        .info-box { background: #f8fafc; padding: 15px; border-radius: 14px; border: 1px solid #e2e8f0; border-left: 5px solid #1e3a8a; flex-shrink: 0; }
+        .info-box h3 { margin: 0 0 4px 0; font-size: 1.05em; color: #1e3a8a; font-weight: 700; }
+        .progress { font-size: 1.3em; font-weight: bold; color: #1e3a8a; }
+
+        .calc-box { 
+            background: #0f172a; 
+            color: #f8fafc; 
+            padding: 20px; 
+            border-radius: 14px; 
+            font-size: 1em; 
+            flex: 1; /* Dinamik dikey genişleme kutusu */
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            border: 2px solid transparent; 
+            transition: all 0.3s; 
+            line-height: 1.5; 
+            text-align: center; 
+            margin-bottom: 1vh;
+            min-height: 0;
+            overflow-y: auto;
+        }
+        .calc-box.error-red  { border-color: #be123c; background: #451225; }
+        .calc-box.error-blue { border-color: #2563eb; background: #1e295d; }
+        .calc-box span.highlight { color: #f59e0b; font-weight: bold; }
+
+        .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex-shrink: 0; }
+        button.action-btn { padding: 12px 15px; font-size: 0.95em; font-weight: bold; color: white; background-color: #1e3a8a; border: none; border-radius: 10px; cursor: pointer; transition: background 0.2s; width: 100%; }
+        button.action-btn:hover { background-color: #1d4ed8; }
+        button.btn-warning { background-color: #f59e0b; color: #0f172a; }
+        button.btn-warning:hover { background-color: #d97706; }
+        button.btn-danger { background-color: #be123c; flex-shrink: 0; }
+        button.btn-danger:hover { background-color: #9f1239; }
+        button:disabled { background-color: #e2e8f0 !important; color: #94a3b8 !important; cursor: not-allowed; transform: none !important; border: none !important; }
+
+        /* YÜKSEKLİĞİ DAR VEYA MOBİL YATAY EKRANLAR İÇİN ESNEKLİK */
+        @media (max-height: 760px), (max-width: 900px) {
+            body { 
+                padding: 10px; 
+                height: auto; /* Boyutu serbest bırak */
+                overflow-y: auto; /* Kaydırmayı kesin olarak aktif et */
+            }
+            
+            .slide-card, .container, .main-slide { 
+                height: auto; /* Kartın dikeyde uzayabilmesini sağla */
+                padding: 15px; 
+            }
+
+            /* Eğer Slayt 4'teki gibi iç tarafta yüksekliği kilitli bir canvas varsa: */
+            canvas {
+                height: auto !important;
+                max-height: 350px; /* Telefon ekranında devasa olup sayfayı patlatmasın diye */
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            /* Slayt 5 ve 6'daki yan yana (flex) düzenleri mobilde alt alta getirerek sıkışmayı önleriz */
+            .main-layout, .main-layout-split {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .control-panel, .canvas-panel, .left-sim-panel, .right-exercises-panel {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+        /* ESKİ KÜÇÜK EKRAN KURALLARI (Gerekiyorsa buraya ekleyin veya birleştirin) */
+        @media (max-height: 760px) {
+            body { padding: 1vh 2vw; }
+            h1 { font-size: 20px; }
+            p.subtitle { margin-bottom: 1vh; font-size: 0.9em; }
+            .container { padding: 1.5vh 2vw; height: calc(100% - 45px); gap: 2vw; }
+            .canvas-container { gap: 1vh; }
+            canvas { max-height: calc(100% - 90px); }
+            .selector-bar, .toolbar { padding: 4px 10px; gap: 6px; }
+            .size-btn, .tool-btn { padding: 5px 10px; font-size: 0.85em; }
+            .panel { gap: 1vh; max-width: 280px; }
+            .info-box { padding: 10px; }
+            .info-box h3 { font-size: 0.95em; }
+            .progress { font-size: 1.1em; }
+            .calc-box { padding: 12px; font-size: 0.85em; }
+            button.action-btn { padding: 10px; font-size: 0.85em; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Çizge Laboratuvarı: Sosyal Ağ Simülasyonu</h1>
+    <p class="subtitle">Kişi sayısını değiştirin ve tek renkli bir üçgen yapmadan tüm bağları boyamayı deneyin!</p>
+
+    <div class="container" id="mainContainer">
+
+        <div class="canvas-container">
+            <div class="selector-bar">
+                <span class="selector-title">Kişi Sayısı:</span>
+                <button class="size-btn active" onclick="changeSize(3)">3</button>
+                <button class="size-btn" onclick="changeSize(4)">4</button>
+                <button class="size-btn" onclick="changeSize(5)">5</button>
+                <button class="size-btn" onclick="changeSize(6)">6</button>
+                <button class="size-btn" onclick="changeSize(7)">7</button>
+            </div>
+
+            <canvas id="graphCanvas" width="500" height="500"></canvas>
+
+            <div class="toolbar" id="gameToolbar">
+                <button class="tool-btn red active" id="btnTool1" onclick="setTool(1)">
+                    <div class="color-dot" style="background:#be123c"></div> Kırmızı
+                </button>
+                <button class="tool-btn blue" id="btnTool2" onclick="setTool(2)">
+                    <div class="color-dot" style="background:#2563eb"></div> Mavi
+                </button>
+                <button class="tool-btn eraser" id="btnTool0" onclick="setTool(0)">
+                    <div class="color-dot" style="background:#e2e8f0; border:1px solid #64748b;"></div> Silgi
+                </button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="info-box" id="infoBox">
+                <h3>Graf Durumu</h3>
+                <div>Boyanan Çizgi: <span class="progress" id="edgeCount">0 / 15</span></div>
+            </div>
+
+            <div class="calc-box" id="statusBox">
+                <span style="color:#94a3b8;">Laboratuvar Hazır...<br>Kalem seçip gri çizgileri boyayın.</span>
+            </div>
+
+            <div class="button-group" id="gameButtons">
+                <button class="action-btn btn-warning" id="undoBtn" onclick="undoMove()" disabled>Geri Al</button>
+                <button class="action-btn" onclick="fillRandom()">Rastgele Boya</button>
+            </div>
+            <button class="action-btn btn-danger" id="clearBtn" onclick="clearCanvas()">Tümünü Temizle</button>
+        </div>
+    </div>
+
+    <!-- Ses Dosyaları -->
+    <audio id="sndClick" src="click.mp3" preload="auto"></audio>
+    <audio id="sndCorrect" src="correct.mp3" preload="auto"></audio>
+    <audio id="sndWrong" src="wrong.mp3" preload="auto"></audio>
+
+<script>
+    const canvas = document.getElementById('graphCanvas');
+    const ctx    = canvas.getContext('2d');
+
+    const cx = 250; const cy = 250; const R = 185; const HIT_RADIUS = 25;
+
+    let numNodes = 3;
+    let nodes = []; let edges = []; let historyStack = [];
+    let gameOver = false; let failedTriangle = null; let currentTool = 1;
+
+    function playSound(id) {
+        let snd = document.getElementById(id);
+        if(snd) {
+            // Ses şiddetlerini (0.0 ile 1.0 arası) rahatsız etmeyecek seviyelere çektik
+            if (id === 'sndClick') {
+                snd.volume = 0.2; // Tıklama çok hafif
+            } else if (id === 'sndWrong') {
+                snd.volume = 0.3; // Yanlış/Hata biraz daha duyulabilir
+            } else if (id === 'sndCorrect') {
+                snd.volume = 0.4; // Başarı sesi normal-kısık arası
+            }
+            snd.currentTime = 0;
+            snd.play().catch(e => console.log('Audio play error:', e));
+        }
+    }
+
+    function setTool(toolId) {
+        currentTool = toolId;
+        document.getElementById('btnTool1').classList.remove('active');
+        document.getElementById('btnTool2').classList.remove('active');
+        document.getElementById('btnTool0').classList.remove('active');
+        document.getElementById('btnTool' + toolId).classList.add('active');
+    }
+
+    function initGraph(size) {
+        numNodes = size;
+        nodes = [];
+        edges = [];
+        historyStack = [];
+        gameOver = false;
+        failedTriangle = null;
+
+        // Dinamik Nokta Dağıtımı
+        for (let i = 0; i < numNodes; i++) {
+            let angle = i * Math.PI * 2 / numNodes - Math.PI / 2;
+            nodes.push({ id: i, x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle), label: String.fromCharCode(65 + i) });
+        }
+
+        // Dinamik Tüm İkili Çizgiler (K_n Tam Grafı)
+        for (let i = 0; i < numNodes; i++) {
+            for (let j = i + 1; j < numNodes; j++) {
+                edges.push({ u: i, v: j, color: 0 });
+            }
+        }
+        
+        updateUI();
+        draw();
+    }
+
+    function changeSize(size) {
+        const buttons = document.querySelectorAll('.size-btn');
+        buttons.forEach(btn => {
+            if(parseInt(btn.innerText) === size) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        initGraph(size);
+    }
+
+    function distToSegmentSquared(px, py, x1, y1, x2, y2) {
+        let l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+        if (l2 === 0) return (px - x1) * (px - x1) + (py - y1) * (py - y1);
+        let t = Math.max(0, Math.min(1, ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2));
+        return (px - (x1 + t * (x2 - x1))) ** 2 + (py - (y1 + t * (y2 - y1))) ** 2;
+    }
+
+    function handleInput(e) {
+        e.preventDefault();
+        if (gameOver && currentTool !== 0) return;
+
+        const rect   = canvas.getBoundingClientRect();
+        const scaleX = canvas.width  / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let clientX  = e.touches ? e.touches[0].clientX : e.clientX;
+        let clientY  = e.touches ? e.touches[0].clientY : e.clientY;
+        let px = (clientX - rect.left) * scaleX;
+        let py = (clientY - rect.top)  * scaleY;
+
+        let closestEdge = null; let minDistSq = Infinity;
+        edges.forEach(edge => {
+            let d2 = distToSegmentSquared(px, py, nodes[edge.u].x, nodes[edge.u].y, nodes[edge.v].x, nodes[edge.v].y);
+            if (d2 < minDistSq) { minDistSq = d2; closestEdge = edge; }
+        });
+
+        if (closestEdge && minDistSq <= HIT_RADIUS * HIT_RADIUS) {
+            if (closestEdge.color !== currentTool) {
+                historyStack.push(edges.map(e => ({ ...e })));
+                closestEdge.color = currentTool;
+                checkTriangles(); updateUI(); draw();
+                
+                // Ses Efekti Çalma Mantığı
+                if (gameOver && failedTriangle) {
+                    playSound('sndWrong');
+                } else if (edges.filter(e => e.color !== 0).length === edges.length) {
+                    playSound('sndCorrect');
+                } else {
+                    playSound('sndClick');
+                }
+            }
+        }
+    }
+
+    canvas.addEventListener('mousedown', handleInput);
+    canvas.addEventListener('touchstart', handleInput, { passive: false });
+
+    function undoMove() {
+        if (historyStack.length > 0) {
+            edges = historyStack.pop(); checkTriangles(); updateUI(); draw();
+        }
+    }
+
+    function getEdgeColor(u, v) {
+        let edge = edges.find(e => (e.u === u && e.v === v) || (e.u === v && e.v === u));
+        return edge ? edge.color : 0;
+    }
+
+    function checkTriangles() {
+        for (let i = 0; i < numNodes; i++)
+            for (let j = i + 1; j < numNodes; j++)
+                for (let k = j + 1; k < numNodes; k++) {
+                    let c1 = getEdgeColor(i, j), c2 = getEdgeColor(j, k), c3 = getEdgeColor(k, i);
+                    if (c1 !== 0 && c1 === c2 && c2 === c3) {
+                        gameOver = true; failedTriangle = { u: i, v: j, w: k, color: c1 }; return;
+                    }
+                }
+        gameOver = false; failedTriangle = null;
+    }
+
+    function fillRandom() {
+        if (gameOver) clearCanvas();
+        historyStack.push(edges.map(e => ({ ...e })));
+        edges.forEach(edge => { if (edge.color === 0) edge.color = Math.random() < 0.5 ? 1 : 2; });
+        checkTriangles(); updateUI(); draw();
+        
+        if (gameOver && failedTriangle) {
+            playSound('sndWrong');
+        } else if (edges.filter(e => e.color !== 0).length === edges.length) {
+            playSound('sndCorrect');
+        }
+    }
+
+    function clearCanvas() {
+        edges.forEach(edge => edge.color = 0);
+        historyStack = []; gameOver = false; failedTriangle = null;
+        updateUI(); draw();
+    }
+
+    function updateUI() {
+        let coloredCount = edges.filter(e => e.color !== 0).length;
+        document.getElementById('edgeCount').innerText = `${coloredCount} / ${edges.length}`;
+        document.getElementById('undoBtn').disabled = (historyStack.length === 0);
+
+        let statusBox = document.getElementById('statusBox');
+        if (gameOver && failedTriangle) {
+            let n1 = nodes[failedTriangle.u].label, n2 = nodes[failedTriangle.v].label, n3 = nodes[failedTriangle.w].label;
+            statusBox.className = failedTriangle.color === 1 ? 'calc-box error-red' : 'calc-box error-blue';
+            statusBox.innerHTML = `<strong>ÜÇGEN KAPANDI! (Oyun Bitti)</strong><br>${n1}, ${n2} ve ${n3} noktaları arasında tek renkli <span class="highlight">${failedTriangle.color === 1 ? 'KIRMIZI' : 'MAVİ'}</span> bir üçgen oluştu.`;
+        } else {
+            statusBox.className = 'calc-box';
+            statusBox.innerHTML = coloredCount === edges.length
+                ? '<span style="color:#4ade80; font-weight:bold;">Tebrikler!<br>Hiçbir tek renkli üçgen oluşturmadan tüm çizgileri boyamayı başardınız!</span>'
+                : '<span style="color:#94a3b8;">Kesişen tek renkli üçgenlerden kaçınarak boyamaya devam edin...</span>';
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Çizgileri Çiz
+        edges.forEach(edge => {
+            let isFailedEdge = gameOver && failedTriangle &&
+                ((edge.u === failedTriangle.u && edge.v === failedTriangle.v) || (edge.u === failedTriangle.v && edge.v === failedTriangle.u) ||
+                 (edge.u === failedTriangle.v && edge.v === failedTriangle.w) || (edge.u === failedTriangle.w && edge.v === failedTriangle.v) ||
+                 (edge.u === failedTriangle.w && edge.v === failedTriangle.u) || (edge.u === failedTriangle.u && edge.v === failedTriangle.w));
+
+            if (!isFailedEdge) {
+                let n1 = nodes[edge.u], n2 = nodes[edge.v];
+                ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.lineTo(n2.x, n2.y);
+                if (edge.color === 0) { ctx.lineWidth = 1.5; ctx.strokeStyle = "#cbd5e1"; }
+                else { ctx.lineWidth = 4; ctx.strokeStyle = edge.color === 1 ? (gameOver ? "rgba(226,27,75,0.15)" : "#be123c") : (gameOver ? "rgba(37,99,235,0.15)" : "#2563eb"); }
+                ctx.stroke();
+            }
+        });
+
+        // Kapanan Hatalı Üçgen Varsa Vurgula
+        if (gameOver && failedTriangle) {
+            let tri = [nodes[failedTriangle.u], nodes[failedTriangle.v], nodes[failedTriangle.w]];
+            ctx.beginPath(); ctx.moveTo(tri[0].x, tri[0].y); ctx.lineTo(tri[1].x, tri[1].y); ctx.lineTo(tri[2].x, tri[2].y); ctx.closePath();
+            ctx.fillStyle = failedTriangle.color === 1 ? "rgba(190,18,60,0.12)" : "rgba(37,99,235,0.12)"; ctx.fill();
+            ctx.lineWidth = 5.5; ctx.strokeStyle = failedTriangle.color === 1 ? "#be123c" : "#2563eb";
+            ctx.beginPath(); ctx.moveTo(tri[0].x, tri[0].y); ctx.lineTo(tri[1].x, tri[1].y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(tri[1].x, tri[1].y); ctx.lineTo(tri[2].x, tri[2].y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(tri[2].x, tri[2].y); ctx.lineTo(tri[0].x, tri[0].y); ctx.stroke();
+        }
+
+        // Noktaları (Düğümleri) Çiz
+        nodes.forEach(n => {
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, 14, 0, Math.PI * 2);
+            ctx.fillStyle = "#1e293b"; ctx.fill();
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 13px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText(n.label, n.x, n.y);
+        });
+    }
+
+    // İlk kurulum varsayılan olarak 3 kişi
+    initGraph(3);
+</script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Slayt 2: Yapay Zeka Kullanım Kılavuzu</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* height: 100vh yerine min-height kullanarak içeriğin uzamasına izin veriyoruz */
+            padding: 2vh 2vw;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto; /* Kilit yerine esnek dikey kaydırma */
+        }
+        .slide-card, .container, .main-slide {
+            /* Mevcut diğer kurallarınız kalacak, sadece yükseklik kuralını esnetiyoruz: */
+            height: auto; 
+            min-height: calc(100vh - 40px); /* Üst/alt padding değerlerine göre ekrana yayılma emniyeti */
+        }
+        .slide-card {
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 4vh 4vw;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            min-height: 0; /* Flex dikey sıkıştırma güvenliği */
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2.5vh;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 1.5vh;
+            flex-shrink: 0;
+        }
+        .icon-box { 
+            font-size: 42px; 
+            margin-right: 20px; 
+            line-height: 1; 
+        }
+        h1 {
+            font-size: 30px;
+            color: #1e3a8a;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .prompt-container {
+            display: flex;
+            gap: 2vw;
+            flex: 1;
+            min-height: 0; /* Çocuk elemanların dikeyde taşmasını önler */
+        }
+        .prompt-box {
+            flex: 1;
+            border-radius: 16px;
+            padding: 3vh 2.5vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            min-height: 0;
+        }
+        .wrong-box {
+            background-color: #ffffba;
+            border: 2px solid #ffb3ba;
+        }
+        .right-box {
+            background-color: #baffc9;
+            border: 2px solid #bae1ff;
+        }
+        .box-title {
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-bottom: 1.5vh;
+            flex-shrink: 0;
+        }
+        .wrong-title { color: #c53030; }
+        .right-title { color: #22543d; }
+        
+        .prompt-quote {
+            font-style: italic;
+            background-color: rgba(255, 255, 255, 0.6);
+            padding: 2vh 2vw;
+            border-radius: 10px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #2d3748;
+            margin-bottom: 2vh;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            min-height: 0;
+            overflow-y: auto; /* Çok ekstrem durumlarda sadece kutu içi scroll aktif olsun */
+        }
+        .result-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #2d3748;
+            flex-shrink: 0;
+        }
+        .result-text strong {
+            font-size: 17px;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+
+        /* YÜKSEKLİĞİ DAR VEYA MOBİL YATAY EKRANLAR İÇİN ESNEKLİK */
+        @media (max-height: 760px), (max-width: 900px) {
+            body { 
+                padding: 10px; 
+                height: auto; /* Boyutu serbest bırak */
+                overflow-y: auto; /* Kaydırmayı kesin olarak aktif et */
+            }
+            
+            .slide-card, .container, .main-slide { 
+                height: auto; /* Kartın dikeyde uzayabilmesini sağla */
+                padding: 15px; 
+            }
+
+            /* Eğer Slayt 4'teki gibi iç tarafta yüksekliği kilitli bir canvas varsa: */
+            canvas {
+                height: auto !important;
+                max-height: 350px; /* Telefon ekranında devasa olup sayfayı patlatmasın diye */
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            /* Slayt 5 ve 6'daki yan yana (flex) düzenleri mobilde alt alta getirerek sıkışmayı önleriz */
+            .main-layout, .main-layout-split {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .control-panel, .canvas-panel, .left-sim-panel, .right-exercises-panel {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+        /* ESKİ KÜÇÜK EKRAN KURALLARI (Gerekiyorsa buraya ekleyin veya birleştirin) */
+        @media (max-height: 760px) {
+            .slide-card { padding: 2.5vh 3vw; }
+            .header { margin-bottom: 1.5vh; padding-bottom: 1vh; }
+            .icon-box { font-size: 32px; }
+            h1 { font-size: 24px; }
+            .prompt-box { padding: 2vh 2vw; }
+            .box-title { font-size: 16px; margin-bottom: 1vh; }
+            .prompt-quote { font-size: 14px; padding: 1.5vh; margin-bottom: 1.5vh; }
+            .result-text { font-size: 14px; }
+            .result-text strong { font-size: 15px; margin-bottom: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-card">
+        <div class="header">
+            <div class="icon-box">💡</div>
+            <div>
+                <h1>Yapay Zeka Kullanım Kılavuzu</h1>
+            </div>
+        </div>
+
+        <div class="prompt-container">
+            <div class="prompt-box wrong-box">
+                <div>
+                    <div class="box-title wrong-title">❌ YANLIŞ YAKLAŞIM</div>
+                    <div class="prompt-quote">
+                        "Ramsey'in parti probleminin çözümü nedir? Bana cevabı ve ispatını hemen yaz, ödevime yapıştıracağım."
+                    </div>
+                </div>
+                <div class="result-text">
+                    <strong>Neden Kötü?</strong><br>
+                    • Yapay zeka cevabı saniyeler içinde doğrudan söyler.<br>
+                    • Zihinsel süreçlerinizi kapatır.<br>
+                    • Keşif heyecanını yok eder.
+                </div>
+            </div>
+
+            <div class="prompt-box right-box">
+                <div>
+                    <div class="box-title right-title">🟢 DOĞRU YAKLAŞIM</div>
+                    <div class="prompt-quote">
+                        "Sana bir parti problemi soracağım. Bana asla cevabı doğrudan söyleme. Bir matematik öğretmeni gibi davran, bana adım adım ipuçları ver ve sorular sorarak cevabı benim bulmamı sağla."
+                    </div>
+                </div>
+                <div class="result-text">
+                    <strong>Neden Harika?</strong><br>
+                    • Yapay zekayı bir **Sokratik Koç** yapar.<br>
+                    • Sizi tümevarımsal düşünmeye zorlar.<br>
+                    • Çözümü bizzat analiz ederek keşfetmenizi sağlar.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

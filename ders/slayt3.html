@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slayt: HTML Çıktısı Veren Prompt</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['Ã|Ä', 'Ã|Ä'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* height: 100vh yerine min-height kullanarak içeriğin uzamasına izin veriyoruz */
+            padding: 2vh 2vw;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto; /* Kilit yerine esnek dikey kaydırma */
+        }
+        .slide-card, .container, .main-slide {
+            /* Mevcut diğer kurallarınız kalacak, sadece yükseklik kuralını esnetiyoruz: */
+            height: auto; 
+            min-height: calc(100vh - 40px); /* Üst/alt padding değerlerine göre ekrana yayılma emniyeti */
+        }
+        .main-slide {
+            background-color: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            width: 100%; /* Genişliği ekranın %100'ü yap */
+            max-width: 100%; /* Sınırlandırmayı kaldır */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 0; /* Flex dikey sıkıştırma güvenliği */
+            padding: 4vh 4vw;
+        }
+        .slide-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        .inner-content-card {
+            background-color: #eff6ff;
+            border-radius: 16px;
+            padding: 3vh 3vw;
+            flex: 1.2;
+            display: flex;
+            align-items: center; /* Metni dikeyde ortala */
+            min-height: 0;
+            overflow-y: auto; /* Ekstra koruma: Çok küçük ekranlarda sadece kart içi kaydırma açılır */
+        }
+        .images-container {
+            flex: 0.8;
+            display: flex;
+            flex-direction: column;
+            gap: 2vh;
+            justify-content: center;
+        }
+        .image-box {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        .image-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .image-caption {
+            margin-top: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4f46e5;
+        }
+        .prompt-text {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.6;
+            color: #0f172a;
+        }
+        .highlight-red {
+            color: #be123c;
+        }
+
+        /* YÜKSEKLİĞİ DAR VEYA MOBİL YATAY EKRANLAR İÇİN ESNEKLİK */
+        @media (max-height: 760px), (max-width: 900px) {
+            body { 
+                padding: 10px; 
+                height: auto; /* Boyutu serbest bırak */
+                overflow-y: auto; /* Kaydırmayı kesin olarak aktif et */
+            }
+            
+            .slide-card, .container, .main-slide { 
+                height: auto; /* Kartın dikeyde uzayabilmesini sağla */
+                padding: 15px; 
+            }
+
+            /* Eğer Slayt 4'teki gibi iç tarafta yüksekliği kilitli bir canvas varsa: */
+            canvas {
+                height: auto !important;
+                max-height: 350px; /* Telefon ekranında devasa olup sayfayı patlatmasın diye */
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            /* Slayt 5 ve 6'daki yan yana (flex) düzenleri mobilde alt alta getirerek sıkışmayı önleriz */
+            .main-layout, .main-layout-split {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .control-panel, .canvas-panel, .left-sim-panel, .right-exercises-panel {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+        /* ESKİ KÜÇÜK EKRAN KURALLARI (Gerekiyorsa buraya ekleyin veya birleştirin) */
+        @media (max-height: 760px) {
+            .main-slide { padding: 3vh 3vw; }
+            .slide-title { font-size: 24px; }
+            .inner-content-card { padding: 2vh 2.5vw; }
+            .prompt-text { font-size: 16px; line-height: 1.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-slide border border-slate-200">
+        
+        <div class="flex flex-col flex-1 min-height-0">
+            <div class="flex items-center gap-4 mb-3 flex-shrink-0">
+                <span class="text-4xl">🤖</span>
+                <h1 class="slide-title">HTML Çıktısı Veren Prompt</h1>
+            </div>
+            
+            <div class="w-full border-t-2 border-dashed border-slate-200 mb-4 flex-shrink-0"></div>
+
+            <div class="flex gap-6 flex-1 min-height-0">
+                <div class="w-2 bg-[#be123c] rounded-full shrink-0"></div>
+                
+                <div class="images-container flex-1 !flex-row !flex-wrap !justify-evenly">
+                    <div class="image-box flex-1 min-w-[300px] max-w-[45%]">
+                        <img src="1.PNG" alt="Gemini Canvas Görünümü 1" class="w-full h-auto object-contain">
+                        <div class="image-caption">Adım Adım İpuçları</div>
+                    </div>
+                    <div class="image-box flex-1 min-w-[300px] max-w-[45%]">
+                        <img src="2.PNG" alt="Gemini Canvas Görünümü 2" class="w-full h-auto object-contain">
+                        <div class="image-caption">Etkileşimli Deney Ortamı</div>
+                    </div>
+                    <div class="w-full mt-4 text-center text-slate-600">
+                        <p class="text-lg font-bold italic mb-2">
+                            🤖 Gemini Canvas kullanarak interaktif simülasyonlar oluşturmak öğrenmeyi daha etkileyici kılar!
+                        </p>
+                        <div class="inline-block bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-lg shadow-sm">
+                            <span class="text-amber-800 font-semibold">💡 İPUCU:</span> 
+                            <span class="text-slate-700">Yapay zekaya çalışmalarınızı anında etkileşimli hale getirmek için <strong>"Bana [Konu] ile ilgili interaktif bir uygulama/simülasyon kodu yaz"</strong> istemini kullanabilirsiniz!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100 flex-shrink-0">
+         <!-- Butonlar veya alt bilgi alanı (varsa) buraya gelebilir -->
+        </div>
+
+    </div>
+
+    <script>
+        function copyPrompt(id, btn) {
+            const container = document.getElementById(id);
+            const pureText = container.innerText || container.textContent;
+            
+            const dummy = document.createElement('textarea');
+            document.body.appendChild(dummy);
+            dummy.value = pureText.trim();
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            
+            const originalText = btn.innerHTML;
+            btn.innerText = "Kopyalandı!";
+            btn.classList.add("bg-green-100", "text-green-700");
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove("bg-green-100", "text-green-700");
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

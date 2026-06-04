@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ramsey Teorisi: Geri Al ve Sıfırla Destekli İspat</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* height: 100vh yerine min-height kullanarak içeriğin uzamasına izin veriyoruz */
+            padding: 2vh 2vw;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto; /* Kilit yerine esnek dikey kaydırma */
+        }
+        .slide-card, .container, .main-slide {
+            /* Mevcut diğer kurallarınız kalacak, sadece yükseklik kuralını esnetiyoruz: */
+            height: auto; 
+            min-height: calc(100vh - 40px); /* Üst/alt padding değerlerine göre ekrana yayılma emniyeti */
+        }
+        
+        h1 {
+            color: #1e3a8a;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 24px;
+            margin-bottom: 2vh;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 1vh;
+            flex-shrink: 0; /* Başlığın dikeyde sıkışmasını engelle */
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+            gap: 3vw;
+            align-items: center;
+            justify-content: center;
+            min-height: 0; /* Flexbox dikey taşma emniyeti */
+            width: 100%;
+        }
+
+        /* SOL PANEL: DEV METİN VE GEÇİŞ BUTONLARI */
+        .control-panel {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: white;
+            padding: 4vh 3vw;
+            border-radius: 24px;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            min-height: 0;
+        }
+
+        .step-badge {
+            background-color: #be123c;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 800;
+            display: inline-block;
+            align-self: flex-start;
+            margin-bottom: 1.5vh;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .instruction-text {
+            font-size: 24px; /* Geniş ekranda okunabilir, dinamik daralır */
+            line-height: 1.6;
+            color: #0f172a;
+            font-weight: 700;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            overflow-y: auto; /* Çok ekstrem durumlarda yazı kutusu içi kaydırma */
+        }
+
+        .instruction-text strong {
+            color: #1e3a8a;
+        }
+
+        .navigation-bar {
+            display: flex;
+            gap: 15px;
+            margin-top: 2vh;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 800;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .btn-prev { background-color: #e2e8f0; color: #475569; }
+        .btn-prev:hover { background-color: #cbd5e1; }
+        .btn-next { background-color: #1e3a8a; color: white; }
+        .btn-next:hover { background-color: #1d4ed8; }
+
+        .nav-btn:disabled {
+            background-color: #f1f5f9 !important;
+            color: #cbd5e1 !important;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* SAĞ PANEL: SİMÜLASYON VE LABORATUVAR ARAÇLARI */
+        .canvas-panel {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5vh;
+            min-height: 0;
+        }
+
+        canvas {
+            background: white;
+            border: 3px solid #1e3a8a;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+            touch-action: none;
+            height: 100% !important; /* Esnek dikey yüksekliğe adapte edildi */
+            max-height: calc(100% - 150px); /* Üst ve alttaki buton barlarının alanını koru */
+            aspect-ratio: 1 / 1;
+        }
+
+        .interactive-bar {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 460px;
+            flex-shrink: 0;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            border: 3px solid transparent;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .tool-btn.active { transform: scale(1.02); }
+        .tool-btn.red.active { border-color: #be123c; color: #be123c; background: #fff1f2; }
+        .tool-btn.blue.active { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+        .color-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+        .status-badge {
+            width: 100%;
+            max-width: 460px;
+            padding: 10px;
+            border-radius: 12px;
+            background: #0f172a;
+            color: #f8fafc;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 700;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .status-badge.alert-red { border: 2px solid #be123c; background: #451225; }
+        .status-badge.alert-blue { border: 2px solid #2563eb; background: #1e295d; }
+
+        .lab-action-group {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 460px;
+            flex-shrink: 0;
+        }
+        .lab-act-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-undo { background-color: #f59e0b; color: #0f172a; }
+        .btn-undo:hover { background-color: #d97706; }
+        .btn-clear { background-color: #be123c; color: white; }
+        .btn-clear:hover { background-color: #9f1239; }
+        .lab-act-btn:disabled {
+            background-color: #e2e8f0 !important;
+            color: #94a3b8 !important;
+            cursor: not-allowed;
+        }
+
+        /* YÜKSEKLİĞİ DAR VEYA MOBİL YATAY EKRANLAR İÇİN ESNEKLİK */
+        @media (max-height: 760px), (max-width: 900px) {
+            body { 
+                padding: 10px; 
+                height: auto; /* Boyutu serbest bırak */
+                overflow-y: auto; /* Kaydırmayı kesin olarak aktif et */
+            }
+            
+            .slide-card, .container, .main-slide { 
+                height: auto; /* Kartın dikeyde uzayabilmesini sağla */
+                padding: 15px; 
+            }
+
+            /* Eğer Slayt 4'teki gibi iç tarafta yüksekliği kilitli bir canvas varsa: */
+            canvas {
+                height: auto !important;
+                max-height: 350px; /* Telefon ekranında devasa olup sayfayı patlatmasın diye */
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            /* Slayt 5 ve 6'daki yan yana (flex) düzenleri mobilde alt alta getirerek sıkışmayı önleriz */
+            .main-layout, .main-layout-split {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .control-panel, .canvas-panel, .left-sim-panel, .right-exercises-panel {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+        /* ESKİ KÜÇÜK EKRAN KURALLARI (Gerekiyorsa buraya ekleyin veya birleştirin) */
+        @media (max-height: 760px) {
+            body { padding: 1vh 2vw; }
+            h1 { font-size: 20px; margin-bottom: 1.5vh; }
+            .control-panel { padding: 3vh 2.5vw; }
+            .step-badge { font-size: 12px; margin-bottom: 1vh; }
+            .instruction-text { font-size: 17px; line-height: 1.5; }
+            .nav-btn { padding: 12px; font-size: 16px; border-radius: 10px; }
+            .navigation-bar { margin-top: 1.5vh; gap: 10px; }
+            canvas { max-height: calc(100% - 120px); }
+            .canvas-panel { gap: 1vh; }
+            .tool-btn { padding: 8px; font-size: 13px; }
+            .status-badge { padding: 8px; font-size: 13px; min-height: 36px; }
+            .lab-act-btn { padding: 10px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ramsey Teoremi: R(3,3)=6 Matematiksel İspat Adımları</h1>
+
+    <div class="main-layout">
+        
+        <div class="control-panel">
+            <div>
+                <div class="step-badge" id="stepBadge">AŞAMA 1 / 7</div>
+                <div class="instruction-text" id="instructionBox">
+                    Yönerge yükleniyor...
+                </div>
+            </div>
+            
+            <div class="navigation-bar">
+                <button class="nav-btn btn-prev" id="prevBtn" onclick="prevStep()">⬅ GERİ</button>
+                <button class="nav-btn btn-next" id="nextBtn" onclick="nextStep()">İLERİ İPUCU ➡</button>
+            </div>
+        </div>
+
+        <div class="canvas-panel">
+            <div class="interactive-bar">
+                <button class="tool-btn red active" id="tl1" onclick="setTool(1)"><div class="color-dot" style="background:#be123c"></div>Kırmızı Kalem</button>
+                <button class="tool-btn blue" id="tl2" onclick="setTool(2)"><div class="color-dot" style="background:#2563eb"></div>Mavi Kalem</button>
+            </div>
+
+            <canvas id="ramseyCanvas" width="460" height="460"></canvas>
+            
+            <div class="status-badge" id="statusBox">Boyanan: 0 / 15 çizgi.</div>
+
+            <div class="lab-action-group">
+                <button class="lab-act-btn btn-undo" id="undoBtn" onclick="undoMove()" disabled>↩ Son Çizgiyi Geri Al</button>
+                <button class="lab-act-btn btn-clear" onclick="clearCanvas()">🔄 Grafı Sıfırla</button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    const canvas = document.getElementById('ramseyCanvas');
+    const ctx = canvas.getContext('2d');
+    const cx = 230, cy = 230, R = 170, HIT_RADIUS = 22;
+
+    let numNodes = 6;
+    let nodes = [], edges = [], historyStack = [];
+    let gameOver = false, failedTriangle = null, currentTool = 1;
+    let currentStepIndex = 0;
+
+    const ispatSteps = [
+        {
+            badge: "İSPAT ADIMI 1 / 7",
+            text: "Gözlem yapalım: Şu an ekranda <strong>6 adet nokta</strong> ve her şeyin birbiriyle bağlandığı <strong>15 adet gri belirsiz çizgi</strong> var. Şimdi <strong>A noktasına</strong> odaklanın. A'dan çıkan tam <strong>5 adet çizgi</strong> olduğunu sınıfla birlikte sayın."
+        },
+        {
+            badge: "İSPAT ADIMI 2 / 7",
+            text: "<strong>Güvercin Yuvası İlkesini Uygulayalım:</strong> A'dan çıkan bu 5 çizgiyi sadece 2 renge (Kırmızı/Mavi) boyayabiliriz. 5 çizgiyi 2 gruba böldüğümüzde <div>($\\lceil 5/2 \\rceil = 3$)</div>, çizgileri nasıl boyarsanız boyayın <strong>en az 3 tanesi AYNI RENK</strong> olmak zorundadır!"
+        },
+        {
+            badge: "İSPAT ADIMI 3 / 7",
+            text: "Varsayalım ki o aynı renk olan çizgiler 🔴 <strong>KIRMIZI</strong> olsun ve A noktası; <strong>B, C ve D noktalarına</strong> kırmızı çizgilerle bağlansın. Sağdaki graf üzerinde A'dan B, C ve D'ye giden çizgileri kırmızıya boyayarak bunu simüle edelim."
+        },
+        {
+            badge: "İSPAT ADIMI 4 / 7",
+            text: "Şimdi gözlerimizi sadece <strong>B, C ve D noktalarının kendi aralarında kuracağı 3 çizgiye</strong> çevirelim (B-C, C-D, B-D). Bu iç üçgende büyük bir tuzak gizli!"
+        },
+        {
+            badge: "İSPAT ADIMI 5 / 7",
+            text: "<strong>Çelişki Durumu 1:</strong> Eğer B, C ve D arasındaki o 3 çizgiden <strong>herhangi birini bile kırmızıya boyarsanız</strong> (Örneğin B ile C arasını), en başta A'dan gelen kırmızı bağlarla birleşir ve ekranda kaçınılmaz bir 🔺 <strong>A-B-C KIRMIZI ÜÇGENİ</strong> kapanır!"
+        },
+        {
+            badge: "İSPAT ADIMI 6 / 7",
+            text: "<strong>Çelişki Durumu 2:</strong> Kırmızı üçgen oluşturup yanmamak için B, C ve D arasındaki tüm çizgileri mecburen 🔵 <strong>MAVİYE</strong> boyamak zorunda kalırsınız. Bu sefer de kendi aralarında kaçınılmaz olarak 🔷 <strong>B-C-D MAVİ ÜÇGENİ</strong> otomatik kapanır!"
+        },
+        {
+            badge: "İSPAT ADIMI 7 / 7",
+            text: "<strong>KESİN SONUÇ:</strong> Gördüğünüz gibi iki durumda da sistem kilitlenir. Sağdaki graf üzerinde çizgileri dilediğiniz gibi renklendirin; 6 kişi olduğunda <strong>tek renkli bir üçgen oluşmasını engellemek matematiksel olarak imkansızdır!</strong> İspat tamamlanmıştır."
+        }
+    ];
+
+    function setTool(t) {
+        currentTool = t;
+        document.getElementById('tl1').classList.remove('active');
+        document.getElementById('tl2').classList.remove('active');
+        document.getElementById('tl' + t).classList.add('active');
+    }
+
+    function initGraph() {
+        nodes = []; edges = []; historyStack = []; gameOver = false; failedTriangle = null;
+        
+        for (let i = 0; i < numNodes; i++) {
+            let angle = i * Math.PI * 2 / numNodes - Math.PI / 2;
+            nodes.push({ id: i, x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle), label: String.fromCharCode(65 + i) });
+        }
+        for (let i = 0; i < numNodes; i++) {
+            for (let j = i + 1; j < numNodes; j++) {
+                edges.push({ u: i, v: j, color: 0 });
+            }
+        }
+        renderStep();
+    }
+
+    function renderStep() {
+        let step = ispatSteps[currentStepIndex];
+        document.getElementById('stepBadge').innerText = step.badge;
+        const instructionBox = document.getElementById('instructionBox');
+        instructionBox.innerHTML = step.text;
+        triggerMathJax(instructionBox);
+
+        document.getElementById('prevBtn').disabled = (currentStepIndex === 0);
+        document.getElementById('nextBtn').disabled = (currentStepIndex === ispatSteps.length - 1);
+
+        draw();
+    }
+
+    function nextStep() {
+        if (currentStepIndex < ispatSteps.length - 1) {
+            currentStepIndex++;
+            renderStep();
+        }
+    }
+
+    function prevStep() {
+        if (currentStepIndex > 0) {
+            currentStepIndex--;
+            renderStep();
+        }
+    }
+
+    function distToSegSq(px, py, x1, y1, x2, y2) {
+        let l2 = (x2-x1)**2 + (y2-y1)**2;
+        if (l2 === 0) return (px-x1)**2 + (py-y1)**2;
+        let t = Math.max(0, Math.min(1, ((px-x1)*(x2-x1) + (py-y1)*(y2-y1)) / l2));
+        return (px - (x1 + t*(x2-x1)))**2 + (py - (y1 + t*(y2-y1)))**2;
+    }
+
+    canvas.addEventListener('mousedown', handleInput);
+    canvas.addEventListener('touchstart', handleInput, { passive: false });
+
+    function handleInput(e) {
+        if (gameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        let px = (clientX - rect.left) * scaleX;
+        let py = (clientY - rect.top) * scaleY;
+
+        let closest = null, minDist = Infinity;
+        edges.forEach(edge => {
+            let d2 = distToSegSq(px, py, nodes[edge.u].x, nodes[edge.u].y, nodes[edge.v].x, nodes[edge.v].y);
+            if (d2 < minDist) { minDist = d2; closest = edge; }
+        });
+
+        if (closest && minDist <= HIT_RADIUS**2) {
+            if (closest.color !== currentTool) {
+                historyStack.push(edges.map(e => ({...e})));
+                closest.color = currentTool;
+                checkTriangles(); updateUI(); draw();
+            }
+        }
+    }
+
+    function checkTriangles() {
+        for (let i = 0; i < numNodes; i++) {
+            for (let j = i + 1; j < numNodes; j++) {
+                for (let k = j + 1; k < numNodes; k++) {
+                    let c1 = edges.find(e => e.u===i && e.v===j)?.color || edges.find(e => e.u===j && e.v===i)?.color;
+                    let c2 = edges.find(e => e.u===j && e.v===k)?.color || edges.find(e => e.u===k && e.v===j)?.color;
+                    let c3 = edges.find(e => e.u===k && e.v===i)?.color || edges.find(e => e.u===i && e.v===k)?.color;
+                    if (c1 !== 0 && c1 === c2 && c2 === c3) {
+                        gameOver = true; failedTriangle = {u:i, v:j, w:k, color:c1}; return;
+                    }
+                }
+            }
+        }
+        gameOver = false; failedTriangle = null;
+    }
+
+    function undoMove() {
+        if (historyStack.length > 0) {
+            edges = historyStack.pop();
+            checkTriangles();
+            updateUI();
+            draw();
+        }
+    }
+
+    function clearCanvas() {
+        edges.forEach(e => e.color = 0);
+        historyStack = [];
+        gameOver = false;
+        failedTriangle = null;
+        updateUI();
+        draw();
+    }
+
+    function updateUI() {
+        let box = document.getElementById('statusBox');
+        let colored = edges.filter(e => e.color !== 0).length;
+        document.getElementById('undoBtn').disabled = (historyStack.length === 0);
+
+        if (gameOver && failedTriangle) {
+            box.className = failedTriangle.color === 1 ? "status-badge alert-red" : "status-badge alert-blue";
+            box.innerHTML = `🚨 ÜÇGEN KAPANDI! (${nodes[failedTriangle.u].label}-${nodes[failedTriangle.v].label}-${nodes[failedTriangle.w].label})`;
+        } else {
+            box.className = "status-badge";
+            box.innerHTML = `Boyanan: ${colored} / 15 çizgi.`;
+        }
+        triggerMathJax(box);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        edges.forEach(edge => {
+            ctx.beginPath(); ctx.moveTo(nodes[edge.u].x, nodes[edge.u].y); ctx.lineTo(nodes[edge.v].x, nodes[edge.v].y);
+            
+            let isANodeLine = (currentStepIndex >= 0 && currentStepIndex <= 2) && (edge.u === 0 || edge.v === 0);
+            let isInnerTriangleLine = (currentStepIndex >= 3 && currentStepIndex <= 5) && 
+                                      (edge.u === 1 || edge.u === 2 || edge.u === 3) && 
+                                      (edge.v === 1 || edge.v === 2 || edge.v === 3);
+
+            if (edge.color === 0) { 
+                if (isANodeLine || isInnerTriangleLine) {
+                    ctx.strokeStyle = "#64748b"; ctx.lineWidth = 4;
+                } else {
+                    ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 2;
+                }
+            } else { 
+                ctx.strokeStyle = edge.color === 1 ? "#be123c" : "#2563eb"; ctx.lineWidth = 5; 
+            }
+            ctx.stroke();
+        });
+
+        if (gameOver && failedTriangle) {
+            ctx.beginPath();
+            ctx.moveTo(nodes[failedTriangle.u].x, nodes[failedTriangle.u].y);
+            ctx.lineTo(nodes[failedTriangle.v].x, nodes[failedTriangle.v].y);
+            ctx.lineTo(nodes[failedTriangle.w].x, nodes[failedTriangle.w].y); 
+            ctx.closePath(); 
+            ctx.fillStyle = failedTriangle.color === 1 ? "rgba(190,18,60,0.15)" : "rgba(37,99,235,0.15)"; 
+            ctx.fill();
+        }
+
+        nodes.forEach(n => {
+            ctx.beginPath(); ctx.arc(n.x, n.y, 16, 0, Math.PI*2); 
+            if (currentStepIndex <= 2 && n.id === 0) {
+                ctx.fillStyle = "#be123c";
+            } else if (currentStepIndex >= 3 && currentStepIndex <= 5 && (n.id === 1 || n.id === 2 || n.id === 3)) {
+                ctx.fillStyle = "#2563eb";
+            } else {
+                ctx.fillStyle = "#1e293b";
+            }
+            ctx.fill();
+            ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillText(n.label, n.x, n.y);
+        });
+    }
+
+    initGraph();
+
+    function triggerMathJax(element) {
+        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+            window.MathJax.typesetPromise([element]).catch(function (err) {
+                console.error('MathJax Typesetting Error:', err);
+            });
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ramsey Teorisi: Arkadaşlık Problemi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 2vh 2vw;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .slide-card {
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 3vh 3vw;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            min-height: calc(100vh - 40px);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2vh;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 1.5vh;
+            flex-shrink: 0;
+            justify-content: space-between;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+        }
+        .icon-box {
+            font-size: 40px;
+            margin-right: 15px;
+            line-height: 1;
+        }
+        h1 {
+            font-size: 28px;
+            color: #1e3a8a;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #1e3a8a;
+            font-size: 14px;
+        }
+        .nav-btn.active {
+            background-color: #1e3a8a;
+            color: white;
+        }
+        .nav-btn:not(.active) {
+            background-color: white;
+            color: #1e3a8a;
+        }
+        .nav-btn:hover:not(.active) {
+            background-color: #eff6ff;
+        }
+        
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .view-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Ramsey Styles */
+        .line-transition {
+            transition: stroke 0.3s ease, stroke-width 0.2s ease;
+        }
+        .node-transition {
+            transition: r 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), fill 0.3s ease;
+        }
+        svg {
+            max-height: 400px;
+            user-select: none;
+        }
+
+        @media (max-height: 760px), (max-width: 900px) {
+            body { padding: 10px; height: auto; overflow-y: auto; }
+            .slide-card { height: auto; padding: 15px; }
+            .header { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .nav-buttons { width: 100%; justify-content: center; }
+            svg { max-height: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-card">
+        <div class="header">
+            <div class="header-title">
+                <div class="icon-box">🤝</div>
+                <h1>Arkadaşlık ve Yabancılık Problemi</h1>
+            </div>
+            <div class="nav-buttons">
+                <button onclick="showView('teori')" id="btn-teori" class="nav-btn active">MATEMATİKSEL İSPAT</button>
+                <button onclick="showView('uygulama')" id="btn-uygulama" class="nav-btn">ETKİLEŞİMLİ LAB</button>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <!-- TEORİ BÖLÜMÜ -->
+            <div id="teoriView" class="view-section active">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-indigo-50 p-6 rounded-2xl border-l-8 border-indigo-600">
+                        <h2 class="text-xl font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-book-open"></i> Neden R(3,3) = 6?
+                        </h2>
+                        <div class="space-y-4 text-sm text-indigo-900">
+                            <p><strong>1. Gözlem:</strong> Herhangi bir kişi (Ahmet) seçelim. Geriye 5 kişi kalır.</p>
+                            <p><strong>2. GYİ Uygulaması:</strong> Ahmet'in bu 5 kişiyle olan bağları ya Mavi (arkadaş) ya da Kırmızı (yabancı) olmalıdır. Güvercin Yuvası İlkesi gereği, en az 3 tanesi aynı renktir ($ \lceil 5/2 \rceil = 3 $).</p>
+                            <p><strong>3. Varsayım:</strong> Diyelim ki Ahmet; Buse, Ceyda ve Deniz ile arkadaştır (Mavi bağ). </p>
+                            <p><strong>4. Kaçınılmaz Sonuç:</strong> Eğer Buse, Ceyda ve Deniz'den herhangi ikisi arkadaşsa, Ahmet ile bir <strong>mavi üçgen</strong> oluşur. Eğer hiçbiri birbirini tanımıyorsa, kendi aralarında bir <strong>kırmızı üçgen</strong> oluşur!</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                        <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-microscope text-indigo-600"></i> Ramsey Teorisi
+                        </h2>
+                        <blockquote class="italic text-slate-600 border-l-4 border-indigo-500 pl-4 mb-4">
+                            "Tam bir kaos imkansızdır. Yeterince büyük sistemlerde mutlaka düzenli alt yapılar bulunur."
+                        </blockquote>
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-200">
+                                <span class="block text-xs text-slate-400">R(3,3)</span>
+                                <strong class="text-2xl text-indigo-600">6</strong>
+                            </div>
+                            <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-200">
+                                <span class="block text-xs text-slate-400">R(4,4)</span>
+                                <strong class="text-2xl text-slate-800">18</strong>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-4 text-center">
+                            Not: Paul Erdös'e göre R(6,6) değerini bulmak için tüm insanlık seferber olsa bile imkansız olabilir!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UYGULAMA BÖLÜMÜ -->
+            <div id="uygulamaView" class="view-section">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Sol: Kontroller -->
+                    <div class="lg:col-span-4 bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col gap-5">
+                        <h3 class="font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-users text-indigo-600"></i> Parti Ayarları
+                        </h3>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Kişi Sayısı ($N$):</label>
+                            <div id="person-selectors" class="flex gap-2">
+                                <!-- JS -->
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <button id="btn-random" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-shuffle"></i> Rastgele İlişkiler
+                            </button>
+                            <button id="btn-reset" class="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs transition">
+                                <i class="fa-solid fa-rotate-left"></i> Sıfırla
+                            </button>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="mt-auto grid grid-cols-2 gap-2 text-center">
+                            <div class="p-2 bg-blue-50 rounded-lg border border-blue-100">
+                                <div id="stat-blue" class="text-xl font-bold text-blue-600">0</div>
+                                <div class="text-[10px] text-blue-800 uppercase font-bold">Mavi Üçgen</div>
+                            </div>
+                            <div class="p-2 bg-rose-50 rounded-lg border border-rose-100">
+                                <div id="stat-red" class="text-xl font-bold text-rose-600">0</div>
+                                <div class="text-[10px] text-rose-800 uppercase font-bold">Kırmızı Üçgen</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sağ: Görselleştirme -->
+                    <div class="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-4">
+                        <div id="status-panel" class="p-3 rounded-xl border text-center font-bold text-sm">
+                            <!-- JS -->
+                        </div>
+                        <div class="flex-grow flex items-center justify-center min-h-[300px]">
+                            <svg id="graph-svg" viewBox="0 0 500 500" class="w-full h-full max-w-[450px]">
+                                <g id="edges-group"></g>
+                                <g id="nodes-group"></g>
+                            </svg>
+                        </div>
+                        <p class="text-center text-[10px] text-slate-400">💡 Çizgilere tıklayarak ilişkileri (Mavi: Arkadaş, Kırmızı: Yabancı) değiştirebilirsiniz.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // TOGGLE VIEWS
+        function showView(viewId) {
+            document.getElementById('teoriView').classList.remove('active');
+            document.getElementById('uygulamaView').classList.remove('active');
+            document.getElementById('btn-teori').classList.remove('active');
+            document.getElementById('btn-uygulama').classList.remove('active');
+
+            if (viewId === 'teori') {
+                document.getElementById('teoriView').classList.add('active');
+                document.getElementById('btn-teori').classList.add('active');
+            } else {
+                document.getElementById('uygulamaView').classList.add('active');
+                document.getElementById('btn-uygulama').classList.add('active');
+                initGraph(currentN);
+            }
+        }
+
+        // LOGIC
+        let currentN = 6;
+        let edges = [];
+        let nodes = [];
+
+        function triggerMathJax(element) {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([element]).catch(err => console.error(err));
+            }
+        }
+
+        function initGraph(n) {
+            currentN = n;
+            nodes = [];
+            edges = [];
+            const svg = document.getElementById('graph-svg');
+            const nodesGroup = document.getElementById('nodes-group');
+            const edgesGroup = document.getElementById('edges-group');
+            
+            nodesGroup.innerHTML = '';
+            edgesGroup.innerHTML = '';
+
+            const cx = 250, cy = 250, R = 180;
+            for (let i = 0; i < n; i++) {
+                const angle = (i * 2 * Math.PI) / n - Math.PI / 2;
+                nodes.push({
+                    id: i,
+                    x: cx + R * Math.cos(angle),
+                    y: cy + R * Math.sin(angle),
+                    name: String.fromCharCode(65 + i)
+                });
+            }
+
+            for (let i = 0; i < n; i++) {
+                for (let j = i + 1; j < n; j++) {
+                    const edgeId = `edge-${i}-${j}`;
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", nodes[i].x);
+                    line.setAttribute("y1", nodes[i].y);
+                    line.setAttribute("x2", nodes[j].x);
+                    line.setAttribute("y2", nodes[j].y);
+                    line.setAttribute("stroke", "#e2e8f0");
+                    line.setAttribute("stroke-width", "4");
+                    line.setAttribute("stroke-linecap", "round");
+                    line.style.cursor = "pointer";
+                    line.setAttribute("id", edgeId);
+                    line.addEventListener('click', () => toggleEdge(i, j));
+                    edgesGroup.appendChild(line);
+                    edges.push({ u: i, v: j, color: 0, el: line });
+                }
+            }
+
+            nodes.forEach(node => {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", node.x);
+                circle.setAttribute("cy", node.y);
+                circle.setAttribute("r", "18");
+                circle.setAttribute("fill", "#1e3a8a");
+                
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", node.x);
+                text.setAttribute("y", node.y);
+                text.setAttribute("dy", ".3em");
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("fill", "white");
+                text.setAttribute("font-size", "14px");
+                text.setAttribute("font-weight", "bold");
+                text.textContent = node.name;
+
+                g.appendChild(circle);
+                g.appendChild(text);
+                nodesGroup.appendChild(g);
+            });
+
+            updateUI();
+            updateSelectors();
+        }
+
+        function updateSelectors() {
+            const container = document.getElementById('person-selectors');
+            container.innerHTML = '';
+            [3, 4, 5, 6].forEach(val => {
+                const btn = document.createElement('button');
+                btn.className = `flex-1 py-2 text-sm font-bold rounded-lg border transition ${currentN === val ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`;
+                btn.textContent = val;
+                btn.onclick = () => initGraph(val);
+                container.appendChild(btn);
+            });
+        }
+
+        function toggleEdge(u, v) {
+            const edge = edges.find(e => e.u === u && e.v === v);
+            edge.color = (edge.color === 1) ? 2 : 1;
+            updateEdgeVisual(edge);
+            checkTriangles();
+        }
+
+        function updateEdgeVisual(edge) {
+            if (edge.color === 1) { // Mavi (Arkadaş)
+                edge.el.setAttribute("stroke", "#3b82f6");
+                edge.el.setAttribute("stroke-dasharray", "0");
+            } else { // Kırmızı (Yabancı)
+                edge.el.setAttribute("stroke", "#f43f5e");
+                edge.el.setAttribute("stroke-dasharray", "8,4");
+            }
+        }
+
+        function checkTriangles() {
+            let blueCount = 0;
+            let redCount = 0;
+
+            for (let i = 0; i < currentN; i++) {
+                for (let j = i + 1; j < currentN; j++) {
+                    for (let k = j + 1; k < currentN; k++) {
+                        const c1 = getEdgeColor(i, j);
+                        const c2 = getEdgeColor(j, k);
+                        const c3 = getEdgeColor(k, i);
+
+                        if (c1 !== 0 && c1 === c2 && c2 === c3) {
+                            if (c1 === 1) blueCount++;
+                            else redCount++;
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('stat-blue').textContent = blueCount;
+            document.getElementById('stat-red').textContent = redCount;
+            updateUI(blueCount, redCount);
+        }
+
+        function getEdgeColor(u, v) {
+            const edge = edges.find(e => (e.u === u && e.v === v) || (e.u === v && e.v === u));
+            return edge ? edge.color : 0;
+        }
+
+        function updateUI(blue = 0, red = 0) {
+            const panel = document.getElementById('status-panel');
+            const total = blue + red;
+            
+            if (currentN < 6 && total === 0 && edges.every(e => e.color !== 0)) {
+                panel.className = "p-3 rounded-xl border text-center font-bold text-sm bg-emerald-50 border-emerald-500 text-emerald-800";
+                panel.innerHTML = "✨ BAŞARILI! Hiç tek renkli üçgen yok.";
+            } else if (currentN >= 6 && total > 0) {
+                panel.className = "p-3 rounded-xl border text-center font-bold text-sm bg-rose-50 border-rose-500 text-rose-800";
+                panel.innerHTML = `⚠️ R(3,3)=6 DOĞRULANDI! En az ${total} üçgen oluştu.`;
+            } else {
+                panel.className = "p-3 rounded-xl border text-center font-bold text-sm bg-slate-50 border-slate-200 text-slate-600";
+                panel.innerHTML = "İlişkileri düzenleyerek üçgenlerden kaçınmaya çalışın!";
+            }
+        }
+
+        document.getElementById('btn-random').onclick = () => {
+            edges.forEach(edge => {
+                edge.color = Math.random() > 0.5 ? 1 : 2;
+                updateEdgeVisual(edge);
+            });
+            checkTriangles();
+        };
+
+        document.getElementById('btn-reset').onclick = () => {
+            edges.forEach(edge => {
+                edge.color = 0;
+                edge.el.setAttribute("stroke", "#e2e8f0");
+                edge.el.setAttribute("stroke-dasharray", "0");
+            });
+            checkTriangles();
+        };
+
+        window.onload = () => initGraph(6);
+    </script>
+</body>
+</html>

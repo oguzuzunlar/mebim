@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Güvercin Yuvası Prensibi - Teori ve Simülasyon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 2vh 2vw;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .slide-card {
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 3vh 3vw;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            min-height: calc(100vh - 40px);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2vh;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 1.5vh;
+            flex-shrink: 0;
+            justify-content: space-between;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+        }
+        .icon-box {
+            font-size: 40px;
+            margin-right: 15px;
+            line-height: 1;
+        }
+        h1 {
+            font-size: 28px;
+            color: #1e3a8a;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #1e3a8a;
+            font-size: 14px;
+        }
+        .nav-btn.active {
+            background-color: #1e3a8a;
+            color: white;
+        }
+        .nav-btn:not(.active) {
+            background-color: white;
+            color: #1e3a8a;
+        }
+        .nav-btn:hover:not(.active) {
+            background-color: #eff6ff;
+        }
+        
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .view-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Simulator Styles adapted */
+        .pigeon-nest {
+            transition: all 0.3s ease;
+        }
+        .pigeon-nest:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-height: 760px), (max-width: 900px) {
+            body { padding: 10px; height: auto; overflow-y: auto; }
+            .slide-card { height: auto; padding: 15px; }
+            .header { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .nav-buttons { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-card">
+        <div class="header">
+            <div class="header-title">
+                <div class="icon-box">🐦</div>
+                <h1>Güvercin Yuvası Prensibi</h1>
+            </div>
+            <div class="nav-buttons">
+                <button onclick="showView('uygulama')" id="btn-uygulama" class="nav-btn active">İNTERAKTİF SİMÜLATÖR</button>
+                <button onclick="showView('teori')" id="btn-teori" class="nav-btn">TEORİ VE SORULAR</button>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <!-- TEORİ BÖLÜMÜ -->
+            <div id="teoriView" class="view-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 p-6 rounded-2xl border-l-8 border-blue-500">
+                        <h2 class="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap"></i> Dirichlet Kutusu İlkesi
+                        </h2>
+                        <p class="text-blue-800 leading-relaxed mb-4 italic">
+                            "Eğer $n$ nesne $m$ yuvaya yerleştiriliyorsa ve $n > m$ ise, en az bir yuvada birden fazla nesne olmak zorundadır."
+                        </p>
+                        <div class="bg-white p-4 rounded-xl shadow-sm text-sm text-slate-700">
+                            <strong>Genelleştirilmiş Prensip:</strong><br>
+                            $N$ nesne $M$ yuvaya dağıtılıyorsa, en az bir yuvada en az 
+                            <span class="text-blue-600 font-bold">$\lceil N / M \rceil$</span> 
+                            kadar nesne bulunmalıdır.
+                        </div>
+                        <div class="mt-4 text-sm text-blue-900 font-semibold">
+                            Örnek: 25 güvercin, 6 yuva $\rightarrow \lceil 25/6 \rceil = 5$ güvercin (en az bir yuvada).
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 p-6 rounded-2xl border-l-8 border-amber-500">
+                        <h2 class="text-xl font-bold text-amber-900 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb"></i> Günlük Hayattan Örnekler
+                        </h2>
+                        <ul class="space-y-3 text-sm text-amber-900">
+                            <li class="flex gap-2">
+                                <i class="fa-solid fa-check mt-1"></i>
+                                <span><strong>Aynı Saç Teli:</strong> İstanbul'daki insan sayısı, bir insanın kafasındaki maksimum saç telinden fazladır. O halde saç teli sayısı aynı olan en az iki kişi vardır.</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <i class="fa-solid fa-check mt-1"></i>
+                                <span><strong>Doğum Günleri:</strong> 367 kişi varsa, en az ikisi aynı gün (ay/gün) doğmuştur.</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <i class="fa-solid fa-check mt-1"></i>
+                                <span><strong>Çoraplar:</strong> 2 renk çorap varsa, aynı renk çifti garantilemek için 3 çorap çekilmelidir.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- SORULAR -->
+                <div class="mt-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-brain text-purple-600"></i> Mini Test
+                        </h2>
+                        <div class="bg-purple-100 text-purple-700 font-bold px-4 py-1 rounded-full text-sm">
+                            Skor: <span id="quiz-score">0/3</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Soru 1 -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <p class="font-bold text-slate-800 text-sm mb-3">En az kaç kişi olursa kesinlikle 2 kişi aynı ayda doğmuştur?</p>
+                            <div class="space-y-2">
+                                <button onclick="checkAnswer(1, 'A', this)" class="q-btn-1 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">A) 12 Kişi</button>
+                                <button onclick="checkAnswer(1, 'B', this)" class="q-btn-1 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">B) 13 Kişi</button>
+                                <button onclick="checkAnswer(1, 'C', this)" class="q-btn-1 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">C) 24 Kişi</button>
+                            </div>
+                            <div id="feedback-1" class="mt-2 text-xs font-semibold hidden"></div>
+                        </div>
+                        <!-- Soru 2 -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <p class="font-bold text-slate-800 text-sm mb-3">3 farklı renk bilye arasından aynı renk çift için kaç bilye çekilmelidir?</p>
+                            <div class="space-y-2">
+                                <button onclick="checkAnswer(2, 'A', this)" class="q-btn-2 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">A) 3 bilye</button>
+                                <button onclick="checkAnswer(2, 'B', this)" class="q-btn-2 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">B) 4 bilye</button>
+                                <button onclick="checkAnswer(2, 'C', this)" class="q-btn-2 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">C) 6 bilye</button>
+                            </div>
+                            <div id="feedback-2" class="mt-2 text-xs font-semibold hidden"></div>
+                        </div>
+                        <!-- Soru 3 -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <p class="font-bold text-slate-800 text-sm mb-3">120 kişi 0-100 arası puan alırsa en az kaç kişi aynı puanı almıştır?</p>
+                            <div class="space-y-2">
+                                <button onclick="checkAnswer(3, 'A', this)" class="q-btn-3 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">A) 2 Kişi</button>
+                                <button onclick="checkAnswer(3, 'B', this)" class="q-btn-3 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">B) 3 Kişi</button>
+                                <button onclick="checkAnswer(3, 'C', this)" class="q-btn-3 w-full text-left p-2 text-xs bg-white border rounded hover:bg-slate-50 transition">C) 5 Kişi</button>
+                            </div>
+                            <div id="feedback-3" class="mt-2 text-xs font-semibold hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UYGULAMA BÖLÜMÜ -->
+            <div id="uygulamaView" class="view-section active">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                    <!-- Ayarlar -->
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col gap-4">
+                        <h3 class="font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-indigo-600"></i> Ayarlar
+                        </h3>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Güvercin: <span id="pigeon-val" class="text-indigo-600">10</span></label>
+                            <input type="range" id="pigeon-range" min="1" max="24" value="10" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Yuva: <span id="nest-val" class="text-emerald-600">9</span></label>
+                            <input type="range" id="nest-range" min="1" max="12" value="9" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Dağıtım Modu:</label>
+                            <div class="flex gap-2">
+                                <button id="mode-uniform" onclick="setMode('uniform')" class="flex-1 py-2 text-[10px] font-bold rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-600">Dengeli</button>
+                                <button id="mode-random" onclick="setMode('random')" class="flex-1 py-2 text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600">Rastgele</button>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto space-y-2">
+                            <button onclick="distributePigeons()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-sm">Uçur!</button>
+                            <button onclick="resetSimulation()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-xl text-xs transition">Sıfırla</button>
+                        </div>
+                    </div>
+
+                    <!-- Görselleştirme -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl p-5 border border-slate-200 flex flex-col gap-4">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h3 class="font-bold text-slate-800">Canlı Sahne</h3>
+                            <div id="pigeonhole-verdict" class="px-3 py-1 rounded-full text-[10px] font-bold"></div>
+                        </div>
+
+                        <div id="sky-box" class="min-h-[60px] p-2 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-wrap gap-1 items-center justify-center">
+                            <!-- Pigeons here -->
+                        </div>
+
+                        <div id="nests-container" class="grid grid-cols-3 sm:grid-cols-4 gap-3 flex-grow overflow-y-auto max-h-[400px]">
+                            <!-- Nests here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // TOGGLE LOGIC
+        function showView(viewId) {
+            document.getElementById('teoriView').classList.remove('active');
+            document.getElementById('uygulamaView').classList.remove('active');
+            document.getElementById('btn-teori').classList.remove('active');
+            document.getElementById('btn-uygulama').classList.remove('active');
+
+            if (viewId === 'teori') {
+                document.getElementById('teoriView').classList.add('active');
+                document.getElementById('btn-teori').classList.add('active');
+            } else {
+                document.getElementById('uygulamaView').classList.add('active');
+                document.getElementById('btn-uygulama').classList.add('active');
+                resetSimulation(); // Ensure fresh start
+            }
+        }
+
+        // SIMULATOR LOGIC
+        let config = { pigeons: 10, nests: 9, mode: 'uniform' };
+        const pigeonEmojis = ["🐦", "🕊️", "🦆", "🦉", "🦅"];
+
+        const pigeonRange = document.getElementById('pigeon-range');
+        const pigeonVal = document.getElementById('pigeon-val');
+        const nestRange = document.getElementById('nest-range');
+        const nestVal = document.getElementById('nest-val');
+        const skyBox = document.getElementById('sky-box');
+        const nestsContainer = document.getElementById('nests-container');
+        const verdictBadge = document.getElementById('pigeonhole-verdict');
+
+        function triggerMathJax(element) {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([element]).catch(err => console.error(err));
+            }
+        }
+
+        pigeonRange.addEventListener('input', (e) => {
+            config.pigeons = parseInt(e.target.value);
+            pigeonVal.textContent = config.pigeons;
+            resetSimulation();
+        });
+
+        nestRange.addEventListener('input', (e) => {
+            config.nests = parseInt(e.target.value);
+            nestVal.textContent = config.nests;
+            resetSimulation();
+        });
+
+        function setMode(mode) {
+            config.mode = mode;
+            const uBtn = document.getElementById('mode-uniform');
+            const rBtn = document.getElementById('mode-random');
+            if (mode === 'uniform') {
+                uBtn.className = "flex-1 py-2 text-[10px] font-bold rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-600";
+                rBtn.className = "flex-1 py-2 text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600";
+            } else {
+                rBtn.className = "flex-1 py-2 text-[10px] font-bold rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-600";
+                uBtn.className = "flex-1 py-2 text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600";
+            }
+        }
+
+        function resetSimulation() {
+            skyBox.innerHTML = '';
+            nestsContainer.innerHTML = '';
+            updateVerdictBadge(false);
+
+            for (let i = 0; i < config.pigeons; i++) {
+                const pEl = document.createElement('div');
+                pEl.className = "w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-lg";
+                pEl.innerHTML = pigeonEmojis[i % pigeonEmojis.length];
+                skyBox.appendChild(pEl);
+            }
+
+            for (let j = 0; j < config.nests; j++) {
+                const nestEl = document.createElement('div');
+                nestEl.id = `nest-${j}`;
+                nestEl.className = "bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-xl p-2 min-h-[100px] flex flex-wrap gap-1 items-center justify-center relative";
+                nestEl.innerHTML = `<span class="absolute top-1 right-1 text-[8px] font-bold text-emerald-600">N${j+1}</span>`;
+                nestsContainer.appendChild(nestEl);
+            }
+        }
+
+        function distributePigeons() {
+            resetSimulation();
+            const pigeons = Array.from(skyBox.children);
+            pigeons.forEach((p, idx) => {
+                let target = (config.mode === 'uniform') ? (idx % config.nests) : Math.floor(Math.random() * config.nests);
+                setTimeout(() => {
+                    p.className = "w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-sm transition-all";
+                    document.getElementById(`nest-${target}`).appendChild(p);
+                    checkState();
+                }, idx * 100);
+            });
+        }
+
+        function checkState() {
+            let maxInNest = 0;
+            for (let j = 0; j < config.nests; j++) {
+                const count = document.getElementById(`nest-${j}`).children.length - 1; // subtract span
+                if (count > maxInNest) maxInNest = count;
+                const nest = document.getElementById(`nest-${j}`);
+                if (count > 1) nest.className = "bg-amber-50 border-2 border-solid border-amber-500 rounded-xl p-2 min-h-[100px] flex flex-wrap gap-1 items-center justify-center relative";
+            }
+            updateVerdictBadge(maxInNest >= 2);
+        }
+
+        function updateVerdictBadge(clash) {
+            const isGuaranteed = config.pigeons > config.nests;
+            if (clash) {
+                verdictBadge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700";
+                verdictBadge.innerHTML = isGuaranteed ? "KANITLANDI!" : "ÇAKIŞMA VAR";
+            } else {
+                verdictBadge.className = "px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700";
+                verdictBadge.innerHTML = "TEMİZ";
+            }
+        }
+
+        // QUIZ LOGIC
+        let score = 0;
+        const answers = { 1: 'B', 2: 'B', 3: 'A' };
+        let done = {};
+
+        function checkAnswer(q, opt, btn) {
+            if (done[q]) return;
+            done[q] = true;
+            const fb = document.getElementById(`feedback-${q}`);
+            fb.classList.remove('hidden');
+            
+            document.querySelectorAll(`.q-btn-${q}`).forEach(b => b.disabled = true);
+
+            if (opt === answers[q]) {
+                btn.className = "w-full text-left p-2 text-xs bg-emerald-50 border-2 border-emerald-500 rounded font-bold text-emerald-800";
+                fb.innerHTML = "Doğru!";
+                fb.className = "mt-2 text-xs font-semibold text-emerald-600";
+                score++;
+                document.getElementById('quiz-score').textContent = `${score}/3`;
+            } else {
+                btn.className = "w-full text-left p-2 text-xs bg-rose-50 border-2 border-rose-500 rounded font-bold text-rose-800";
+                fb.innerHTML = `Yanlış! Doğru: ${answers[q]}`;
+                fb.className = "mt-2 text-xs font-semibold text-rose-600";
+            }
+        }
+
+        window.onload = resetSimulation;
+    </script>
+</body>
+</html>
